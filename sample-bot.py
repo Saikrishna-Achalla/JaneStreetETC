@@ -64,7 +64,7 @@ def main():
     # rate-limited and ignored. Please, don't do that!
     while True:
         message = exchange.read_message()
-
+        print(message)
         # Some of the message types below happen infrequently and contain
         # important information to help you understand what your bot is doing,
         # so they are printed in full. We recommend not always printing every
@@ -81,11 +81,28 @@ def main():
         elif message["type"] == "fill":
             print(message)
         elif message["type"] == "book":
-            if message["symbol"] == "VALE":
 
-                def best_price(side):
+            def best_price(side):
                     if message[side]:
                         return message[side][0][0]
+            
+            if message["symbol"] == "VALE":
+
+                vale_bid_price = best_price("buy")
+                vale_ask_price = best_price("sell")
+
+                now = time.time()
+
+                if now > vale_last_print_time + 1:
+                    vale_last_print_time = now
+                    print(
+                        {
+                            "vale_bid_price": vale_bid_price,
+                            "vale_ask_price": vale_ask_price,
+                        }
+                    )
+            
+            elif message["symbol"] == "BOND":
 
                 vale_bid_price = best_price("buy")
                 vale_ask_price = best_price("sell")
@@ -227,7 +244,7 @@ def parse_arguments():
 if __name__ == "__main__":
     # Check that [team_name] has been updated.
     assert (
-        team_name != "REPLACEME"
+        team_name != "PACIFICHALIBUT"
     ), "Please put your team name in the variable [team_name]."
 
     main()
