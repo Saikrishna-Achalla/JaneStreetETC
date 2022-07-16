@@ -9,6 +9,7 @@ from collections import deque
 from enum import Enum
 import time
 import socket
+import sys
 import json
 
 # ~~~~~============== CONFIGURATION  ==============~~~~~
@@ -28,6 +29,7 @@ team_name = "PACIFICHALIBUT"
 
 
 def main():
+
     args = parse_arguments()
 
     exchange = ExchangeConnection(args=args)
@@ -37,12 +39,29 @@ def main():
     # all positions at zero, but if you reconnect during a round, you might
     # have already bought/sold symbols and have non-zero positions.
     hello_message = exchange.read_message()
+    portfolio = {"BOND":0, "GS":0, "MS":0, "USD":0, "VALBZ":0, "VALE":0, "WFC":0, "XLF":0}
+    for security in hello_message["symbols"]:
+        symbol = security['symbol']
+        portfolio[symbol] = security['position']
+
     print("First message from exchange:", hello_message)
 
     # Send an order for BOND at a good price, but it is low enough that it is
     # unlikely it will be traded against. Maybe there is a better price to
     # pick? Also, you will need to send more orders over time.
-    exchange.send_add_message(order_id=1, symbol="BOND", dir=Dir.BUY, price=990, size=1)
+
+    #exchange.send_add_message(order_id=1, symbol="BOND", dir=Dir.BUY, price=999, size=5)
+    #exchange.send_add_message(order_id=2, symbol="BOND", dir=Dir.SELL, price=1000, size=1)
+
+
+    # Bond Penny-pinching
+    num_bonds = portfolio["BOND"]
+    if num_bonds > 0:
+        exchange.send_add_message(order_id=1, symbol="BOND", dir=Dir.SELL, price=1000, size=num_bonds)
+    elif num_bonds < 0:
+        exchange.send_add_message(order_id=2, symbol="BOND", dir=Dir.BUY, price=999, size=-num_bonds)
+    else:
+        exchange.send_add_message(order_id=3, symbol="BOND", dir=Dir.BUY, price=999, size=2)
 
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
@@ -64,7 +83,7 @@ def main():
     # rate-limited and ignored. Please, don't do that!
     while True:
         message = exchange.read_message()
-        print(message)
+        #print(message)
         # Some of the message types below happen infrequently and contain
         # important information to help you understand what your bot is doing,
         # so they are printed in full. We recommend not always printing every
@@ -86,7 +105,7 @@ def main():
                     if message[side]:
                         return message[side][0][0]
             
-            if message["symbol"] == "VALE":
+            if message["symbol"] == "BOND":
 
                 vale_bid_price = best_price("buy")
                 vale_ask_price = best_price("sell")
@@ -228,7 +247,7 @@ def parse_arguments():
 if __name__ == "__main__":
     # Check that [team_name] has been updated.
     assert (
-        team_name != "PACIFICHALIBUT"
+        team_name == "PACIFICHALIBUT"
     ), "Please put your team name in the variable [team_name]."
 
     main()
