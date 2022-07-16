@@ -101,22 +101,6 @@ def main():
                             "vale_ask_price": vale_ask_price,
                         }
                     )
-            
-            elif message["symbol"] == "BOND":
-
-                vale_bid_price = best_price("buy")
-                vale_ask_price = best_price("sell")
-
-                now = time.time()
-
-                if now > vale_last_print_time + 1:
-                    vale_last_print_time = now
-                    print(
-                        {
-                            "vale_bid_price": vale_bid_price,
-                            "vale_ask_price": vale_ask_price,
-                        }
-                    )
 
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
